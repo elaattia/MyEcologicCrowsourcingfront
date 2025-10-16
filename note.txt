@@ -1,0 +1,81 @@
+
+-je doit ajouter une historique des signalement que le user a signaler avec le resultat du modle(quelle type de decher)
+-je doit ajouter que le user peut prendre une photo 
+-je doit ajouter la partie du cartographie
+-et puis je doit ajouter la partie du admin et la partie du organisation(je doit modifer la partie connextion)
+
+2. Frontend - Composants à créer
+A. Pages communes à tous
+
+✅ WelcomePage (déjà fait)
+✅ LoginPage (déjà fait)
+
+B. Dashboard USER
+
+✅ DashboardContent (à améliorer avec vraies stats)
+✅ SignalWasteContent (déjà fait)
+🆕 MyReportsContent - Liste de mes signalements
+🆕 BadgesContent - Mes badges et réalisations
+🆕 MapViewContent - Carte interactive avec tous les déchets
+
+C. Dashboard ORGANISATION
+
+🆕 OrganisationDashboard - Vue d'ensemble
+🆕 NearbyWastesContent - Déchets à proximité
+🆕 CreateMissionContent - Créer une mission
+🆕 MyMissionsContent - Mes missions
+🆕 PlanningContent - Planning optimisé
+🆕 CompleteMissionContent - Compléter une mission
+
+D. Dashboard ADMIN
+
+🆕 AdminDashboard - Vue d'ensemble admin
+🆕 PendingOrganisationsContent - Organisations en attente
+🆕 PendingMissionsContent - Missions à vérifier
+🆕 UsersManagementContent - Gestion utilisateurs
+🆕 GlobalStatisticsContent - Statistiques globales
+🆕 ExportDataContent - Export des données
+
+3. Fonctionnalités supplémentaires recommandées
+A. Système de gamification
+
+Points pour chaque action (signaler: +10, déchet nettoyé: +50)
+Badges à débloquer (Débutant, Expert, Champion, etc.)
+Leaderboard des meilleurs contributeurs
+Défis mensuels
+
+B. Optimisation d'itinéraires
+
+Algorithme TSP (Travelling Salesman Problem) pour grouper les déchets proches
+Suggestion de zones prioritaires
+Estimation du temps et carburant
+Carte avec itinéraire optimisé
+
+C. Notifications en temps réel
+
+WebSockets ou SignalR pour notifications push
+Email notifications pour événements importants
+Notifications in-app
+
+D. Système de vérification
+
+Photos avant/après pour les missions
+Validation admin avec commentaires
+Historique des vérifications
+
+E. Analytics et rapports
+
+Graphiques d'évolution (Chart.js ou Recharts)
+Export PDF/CSV des statistiques
+Tableaux de bord personnalisés
+Comparaisons temporelles
+
+4. Améliorations UX/UI
+
+🎨 Dark mode
+📱 PWA (Progressive Web App) pour mobile
+🗺️ Intégration Google Maps / Leaflet
+📊 Graphiques interactifs
+🔔 Centre de notifications avec compteur
+📸 Caméra intégrée pour prise de photo directe
+🌍 Multilangue (i18n)

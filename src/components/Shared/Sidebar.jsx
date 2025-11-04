@@ -1,26 +1,37 @@
 // components/Shared/Sidebar.jsx
-import React from 'react';
-import { Home, Plus, Map, BarChart3, User, LogOut, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  MapPin, Home, Plus, Map as MapIcon, BarChart3, User, LogOut, 
+  Trash2, Camera, Upload, Filter, Search, Eye, CheckCircle, 
+  Clock, AlertCircle, Download, Truck, Route, Settings, Building2
+} from 'lucide-react';
 
+// ==================== SIDEBAR ====================
 const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
-  const menuItems = [
+  const isOrganisation = user?.role === 1;
+  
+  const userMenuItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: Home },
     { id: 'signal', label: 'Signaler un déchet', icon: Plus },
-    { id: 'map', label: 'Carte', icon: Map },
+    { id: 'map', label: 'Carte', icon: MapIcon },
     { id: 'stats', label: 'Statistiques', icon: BarChart3 },
+    { id: 'history', label: 'Historique', icon: Trash2 },
     { id: 'profile', label: 'Profil', icon: User },
   ];
 
-  const getUserInitials = () => {
-    if (user?.username) {
-      return user.username.charAt(0).toUpperCase();
-    }
-    return 'U';
-  };
+  const orgMenuItems = [
+    { id: 'dashboard', label: 'Tableau de bord', icon: Home },
+    { id: 'map', label: 'Cartographie', icon: MapIcon },
+    { id: 'itinerary', label: 'Itinéraires', icon: Route },
+    { id: 'vehicles', label: 'Véhicules', icon: Truck },
+    { id: 'stats', label: 'Statistiques', icon: BarChart3 },
+    { id: 'profile', label: 'Profil', icon: Building2 },
+  ];
+
+  const menuItems = isOrganisation ? orgMenuItems : userMenuItems;
 
   return (
     <aside className="w-64 h-screen bg-white text-gray-800 flex flex-col fixed left-0 top-0 shadow-2xl">
-      {}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-center gap-2">
           <div className="bg-gradient-to-br from-emerald-400 to-cyan-500 p-2 rounded-xl">
@@ -31,11 +42,10 @@ const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
           </h1>
         </div>
         <p className="text-gray-600 text-sm text-center mt-2">
-          {user?.role === 1 ? 'Organisation' : 'Citoyen'}
+          {isOrganisation ? '🏢 Organisation' : '👤 Citoyen'}
         </p>
       </div>
 
-      {}
       <nav className="flex-1 overflow-y-auto mt-4 px-3">
         <ul className="space-y-2">
           {menuItems.map((item) => {
@@ -61,11 +71,10 @@ const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
         </ul>
       </nav>
 
-      {}
       <div className="border-t border-gray-200 p-4 bg-gray-50">
         <div className="flex items-center gap-3 mb-4 px-2">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-lg font-bold text-white shadow-lg">
-            {getUserInitials()}
+            {user?.username?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-800 truncate">
@@ -87,5 +96,4 @@ const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
     </aside>
   );
 };
-
 export default Sidebar;

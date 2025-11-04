@@ -1,23 +1,36 @@
 // components/DashboardContent.jsx
 import React, { useEffect, useState } from 'react';
-import { MapPin, TrendingUp, Award, AlertCircle } from 'lucide-react';
+import { MapPin, TrendingUp, Award, AlertCircle, Loader } from 'lucide-react';
 import wasteApi from '../services/api/wasteApi';
 
 const DashboardContent = ({ user }) => {
   const [stats, setStats] = useState({
-    totalReports: 0,
-    processedReports: 0,
-    points: 0,
+    totalDechets: 0,
+    totalSignales: 0,
+    totalNettoyés: 0,
+    pourcentageNettoyage: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await wasteApi.getStatistics();
-        setStats(data);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques:', error);
+        setLoading(true);
+        setError('');
+        
+        // Appeler l'API pour récupérer MES statistiques
+        const data = await wasteApi.getMyStatistics();
+        
+        setStats({
+          totalDechets: data.totalDechets || 0,
+          totalSignales: data.totalSignales || 0,
+          totalNettoyés: data.totalNettoyés || 0,
+          pourcentageNettoyage: data.pourcentageNettoyage || 0
+        });
+      } catch (err) {
+        console.error('Erreur lors de la récupération des statistiques:', err);
+        setError(err.message || 'Erreur de chargement des statistiques');
       } finally {
         setLoading(false);
       }
@@ -28,7 +41,7 @@ const DashboardContent = ({ user }) => {
 
   return (
     <div className="space-y-8">
-      {}
+      {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -44,40 +57,81 @@ const DashboardContent = ({ user }) => {
         </div>
       </div>
 
-      {}
+      {/* Affichage erreur */}
+      {error && (
+        <div className="bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-xl flex items-center gap-3">
+          <AlertCircle size={20} />
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Total signalements */}
         <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl text-center">
           <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <MapPin className="text-emerald-600" size={36} />
           </div>
           <p className="text-5xl font-bold text-emerald-600 mb-2">
-            {loading ? '...' : stats.totalReports}
+            {loading ? (
+              <Loader className="animate-spin mx-auto" size={40} />
+            ) : (
+              stats.totalDechets
+            )}
           </p>
           <p className="text-gray-600 font-medium">Signalements effectués</p>
         </div>
 
+        {/* Signalés */}
+        <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl text-center">
+          <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="text-amber-600" size={36} />
+          </div>
+          <p className="text-5xl font-bold text-amber-600 mb-2">
+            {loading ? (
+              <Loader className="animate-spin mx-auto" size={40} />
+            ) : (
+              stats.totalSignales
+            )}
+          </p>
+          <p className="text-gray-600 font-medium">En attente</p>
+        </div>
+
+        {/* Nettoyés */}
         <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl text-center">
           <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <TrendingUp className="text-blue-600" size={36} />
           </div>
           <p className="text-5xl font-bold text-blue-600 mb-2">
-            {loading ? '...' : stats.processedReports}
+            {loading ? (
+              <Loader className="animate-spin mx-auto" size={40} />
+            ) : (
+              stats.totalNettoyés
+            )}
           </p>
           <p className="text-gray-600 font-medium">Déchets nettoyés</p>
         </div>
-
-        <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl text-center">
-          <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Award className="text-amber-600" size={36} />
-          </div>
-          <p className="text-5xl font-bold text-amber-600 mb-2">
-            {loading ? '...' : stats.points}
-          </p>
-          <p className="text-gray-600 font-medium">Points écologiques</p>
-        </div>
       </div>
 
-      {}
+      {/* Pourcentage de nettoyage */}
+      {!loading && stats.totalDechets > 0 && (
+        <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Taux de nettoyage</h3>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full transition-all duration-500"
+                style={{ width: `${stats.pourcentageNettoyage}%` }}
+              ></div>
+            </div>
+            <span className="text-2xl font-bold text-emerald-600">
+              {stats.pourcentageNettoyage.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Actions rapides */}
       <div className="bg-white/95 backdrop-blur rounded-2xl shadow-xl p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-6">Actions rapides</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -119,7 +173,7 @@ const DashboardContent = ({ user }) => {
         </div>
       </div>
 
-      {}
+      {/* Conseil du jour */}
       <div className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 rounded-2xl shadow-xl p-6 text-white">
         <div className="flex items-start gap-4">
           <div className="bg-white/20 backdrop-blur p-3 rounded-xl">

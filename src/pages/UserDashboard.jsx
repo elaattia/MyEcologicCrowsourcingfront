@@ -6,6 +6,7 @@ import SignalWasteContent from '../components/SignalWasteContent';
 import MapContent from '../components/MapContent';
 import StatsContent from '../components/StatsContent';
 import ProfileContent from '../components/ProfileContent';
+import WasteHistory from '../components/WasteHistory';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');

@@ -3,6 +3,9 @@
 -je doit ajouter que le user peut prendre une photo 
 -je doit ajouter la partie du cartographie
 -et puis je doit ajouter la partie du admin et la partie du organisation(je doit modifer la partie connextion)
+-la partie itineraire pour organisation 
+-crude de lorganisation /crud des vehicule/depaut
+-agent apret faire signlar dechet ytala3lek des recommandation ecologique , naw3iyet dechet , 9adeh ba7dek min zone poluet
 
 2. Frontend - Composants à créer
 A. Pages communes à tous

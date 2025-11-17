@@ -5,10 +5,10 @@ const api = axios.create({
   baseURL: 'http://localhost:5008',
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 30000
 });
 
-// Intercepteur pour ajouter le token JWT
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -20,7 +20,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Intercepteur pour gérer les erreurs 401 (non autorisé)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -29,7 +28,11 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.href = '/';
     }
-    return Promise.reject(error);
+    const message = error.response?.data?.message || 
+                    error.response?.data?.error || 
+                    error.message || 
+                    'Une erreur est survenue';
+    return Promise.reject(new Error(message));
   }
 );
 

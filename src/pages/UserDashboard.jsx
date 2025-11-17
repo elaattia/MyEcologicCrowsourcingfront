@@ -1,4 +1,4 @@
-// pages/UserDashboard.jsx
+// pages/UserDashboard.jsx - CORRIGÉ
 import React, { useState } from 'react';
 import Sidebar from '../components/Shared/Sidebar';
 import DashboardContent from '../components/DashboardContent';
@@ -21,6 +21,8 @@ const UserDashboard = ({ user, onLogout }) => {
         return <MapContent />;
       case 'stats':
         return <StatsContent user={user} />;
+      case 'history':
+        return <WasteHistory user={user} />;
       case 'profile':
         return <ProfileContent user={user} />;
       default:
@@ -29,7 +31,7 @@ const UserDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="bg-white min-h-screen flex">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex">
       <Sidebar
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}

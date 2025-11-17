@@ -1,56 +1,167 @@
-//App.jsx
+// src/App.jsx - CORRECTION COMPLÈTE
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './hooks/useAuth';
 import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import UserDashboard from './pages/UserDashboard';
+import OrganisationDashboard from './pages/OrganisationDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import AuthService from './services/auth/AuthService';
 
-const AppContent = () => {
-  const { user, isAuthenticated, loading, logout, login } = useAuth();
-  const [page, setPage] = useState('welcome');
+const App = () => {
+  const [currentView, setCurrentView] = useState('welcome');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      setPage('dashboard');
-    } else {
-      setPage('welcome');
+    const checkAuth = () => {
+      const currentUser = AuthService.getCurrentUser(); // Déjà mappé dans getCurrentUser
+      const token = AuthService.getToken();
+
+      if (currentUser && token) {
+        console.log('🔐 Utilisateur connecté:', {
+          ...currentUser,
+          roleType: typeof currentUser.role,
+          roleText: AuthService.getRoleText(currentUser.role)
+        });
+        
+        // Vérifier que le rôle est bien un number
+        if (typeof currentUser.role !== 'number') {
+          console.error('❌ ERREUR: Le rôle n\'est pas un number:', currentUser.role);
+          // Forcer la déconnexion si données invalides
+          AuthService.logout();
+          setCurrentView('welcome');
+          setLoading(false);
+          return;
+        }
+        
+        setUser(currentUser);
+        setCurrentView('dashboard');
+      } else {
+        setCurrentView('welcome');
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleNavigate = (view) => {
+    setCurrentView(view);
+  };
+
+  const handleLogin = (userData) => {
+    console.log('🎯 handleLogin appelé avec:', userData);
+    console.log('📊 Type de userData.role:', typeof userData.role, 'Valeur:', userData.role);
+    
+    if (!userData || typeof userData.role !== 'number') {
+      console.error('❌ userData invalide ou role pas un number:', userData);
+      setError('Erreur: données utilisateur invalides');
+      return;
     }
-  }, [isAuthenticated, user]);
+    
+    setUser(userData);
+    setCurrentView('dashboard');
+    
+    console.log('✅ User state mis à jour, redirection vers dashboard...');
+    console.log('🔍 Role détecté:', userData.role, '→', 
+      userData.role === 2 ? 'Admin' : 
+      userData.role === 1 ? 'Representant' : 
+      'User');
+  };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    setUser(null);
+    setCurrentView('welcome');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-600"></div>
+          <p className="mt-4 text-gray-600 font-medium">Chargement...</p>
         </div>
       </div>
     );
   }
 
-  if (isAuthenticated && user) {
-    return <UserDashboard user={user} onLogout={logout} />;
+  if (currentView === 'welcome') {
+    return <WelcomePage onNavigate={handleNavigate} />;
   }
 
-  if (page === 'login' || page === 'signup') {
-    const handleLogin = (userData) => {
-      login(userData);  
-      setPage('dashboard'); 
-    };
-
-    return <LoginPage onNavigate={setPage} onLogin={handleLogin} />;
+  if (currentView === 'login' || currentView === 'signup') {
+    return <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />;
   }
 
-  return <WelcomePage onNavigate={setPage} />;
+  if (currentView === 'dashboard' && user) {
+    console.log('🎨 Rendu dashboard pour:', {
+      role: user.role,
+      roleType: typeof user.role,
+      username: user.username,
+      organisationId: user.organisationId
+    });
+    
+    // Vérification stricte du type
+    if (typeof user.role !== 'number') {
+      console.error('❌ ERREUR CRITIQUE: Le rôle n\'est pas un number:', user.role);
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-red-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+            <div className="text-red-600 mb-4">
+              <AlertCircle size={48} className="mx-auto" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Erreur de session</h2>
+            <p className="text-gray-600 mb-6">
+              Une erreur s'est produite avec votre session. Veuillez vous reconnecter.
+            </p>
+            <button
+              onClick={handleLogout}
+              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Se reconnecter
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Redirection selon le rôle (strictement en number)
+    switch (user.role) {
+      case 2:
+        console.log('📋 Affichage: AdminDashboard');
+        return <AdminDashboard user={user} onLogout={handleLogout} />;
+      
+      case 1:
+        console.log('🏢 Affichage: OrganisationDashboard');
+        return <OrganisationDashboard user={user} onLogout={handleLogout} />;
+      
+      case 0:
+        console.log('👤 Affichage: UserDashboard');
+        return <UserDashboard user={user} onLogout={handleLogout} />;
+      
+      default:
+        console.error('❌ Rôle inconnu (number):', user.role);
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-red-50">
+            <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Rôle inconnu</h2>
+              <p className="text-gray-600 mb-4">
+                Erreur: Rôle utilisateur inconnu ({user.role})
+              </p>
+              <button
+                onClick={handleLogout}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        );
+    }
+  }
+
+  return <WelcomePage onNavigate={handleNavigate} />;
 };
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
 
 export default App;

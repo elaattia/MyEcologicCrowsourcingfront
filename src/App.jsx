@@ -1,5 +1,6 @@
-// src/App.jsx - CORRECTION COMPLÈTE
+// src/App.jsx - CORRECTION NAVIGATION LOGIN/SIGNUP
 import React, { useState, useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import UserDashboard from './pages/UserDashboard';
@@ -14,7 +15,7 @@ const App = () => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const currentUser = AuthService.getCurrentUser(); // Déjà mappé dans getCurrentUser
+      const currentUser = AuthService.getCurrentUser();
       const token = AuthService.getToken();
 
       if (currentUser && token) {
@@ -24,10 +25,8 @@ const App = () => {
           roleText: AuthService.getRoleText(currentUser.role)
         });
         
-        // Vérifier que le rôle est bien un number
         if (typeof currentUser.role !== 'number') {
           console.error('❌ ERREUR: Le rôle n\'est pas un number:', currentUser.role);
-          // Forcer la déconnexion si données invalides
           AuthService.logout();
           setCurrentView('welcome');
           setLoading(false);
@@ -46,6 +45,7 @@ const App = () => {
   }, []);
 
   const handleNavigate = (view) => {
+    console.log('🧭 Navigation vers:', view);
     setCurrentView(view);
   };
 
@@ -55,7 +55,6 @@ const App = () => {
     
     if (!userData || typeof userData.role !== 'number') {
       console.error('❌ userData invalide ou role pas un number:', userData);
-      setError('Erreur: données utilisateur invalides');
       return;
     }
     
@@ -86,14 +85,34 @@ const App = () => {
     );
   }
 
+  // Page d'accueil
   if (currentView === 'welcome') {
     return <WelcomePage onNavigate={handleNavigate} />;
   }
 
-  if (currentView === 'login' || currentView === 'signup') {
-    return <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />;
+  // Page de connexion (isLogin = true)
+  if (currentView === 'login') {
+    return (
+      <LoginPage 
+        onNavigate={handleNavigate} 
+        onLogin={handleLogin}
+        initialMode="login"
+      />
+    );
   }
 
+  // Page d'inscription (isLogin = false)
+  if (currentView === 'signup') {
+    return (
+      <LoginPage 
+        onNavigate={handleNavigate} 
+        onLogin={handleLogin}
+        initialMode="signup"
+      />
+    );
+  }
+
+  // Dashboards
   if (currentView === 'dashboard' && user) {
     console.log('🎨 Rendu dashboard pour:', {
       role: user.role,
@@ -102,7 +121,6 @@ const App = () => {
       organisationId: user.organisationId
     });
     
-    // Vérification stricte du type
     if (typeof user.role !== 'number') {
       console.error('❌ ERREUR CRITIQUE: Le rôle n\'est pas un number:', user.role);
       return (
@@ -126,7 +144,6 @@ const App = () => {
       );
     }
     
-    // Redirection selon le rôle (strictement en number)
     switch (user.role) {
       case 2:
         console.log('📋 Affichage: AdminDashboard');

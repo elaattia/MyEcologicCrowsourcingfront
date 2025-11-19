@@ -1,20 +1,26 @@
-// src/pages/LoginPage.jsx - CORRECTION DE LA VALIDATION
-import React, { useState } from 'react';
-import { MapPin, Building2, User, Mail, Lock, Users, Loader, Shield, Eye, EyeOff } from 'lucide-react';
+// src/pages/LoginPage.jsx - SANS vérification email (2FA supprimée)
+import React, { useState, useEffect } from 'react';
+import { MapPin, Building2, User, Mail, Lock, Users, Loader, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import AuthService from '../services/auth/AuthService';
 
-const LoginPage = ({ onNavigate, onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [accountType, setAccountType] = useState('User'); // 'User', 'Organisation', 'Admin'
+const LoginPage = ({ onNavigate, onLogin, initialMode = 'login' }) => {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
+  const [accountType, setAccountType] = useState('User');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // État pour reset password
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     username: '',
-    // Pour organisation
     nom: '',
     nbrVolontaires: '',
     repreUsername: '',
@@ -24,6 +30,10 @@ const LoginPage = ({ onNavigate, onLogin }) => {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLogin(initialMode === 'login');
+  }, [initialMode]);
 
   const resetForm = () => {
     setFormData({
@@ -42,6 +52,7 @@ const LoginPage = ({ onNavigate, onLogin }) => {
 
   const handleToggleMode = (mode) => {
     setIsLogin(mode);
+    setShowResetPassword(false);
     resetForm();
   };
 
@@ -53,7 +64,6 @@ const LoginPage = ({ onNavigate, onLogin }) => {
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // VALIDATION POUR LOGIN
     if (isLogin) {
       if (!formData.email || !formData.password) {
         setError('Email et mot de passe sont requis');
@@ -68,8 +78,13 @@ const LoginPage = ({ onNavigate, onLogin }) => {
       return true;
     }
 
-    // VALIDATION POUR INSCRIPTION - USER/ADMIN
-    if (accountType === 'User' || accountType === 'Admin') {
+    // Bloquer création admin via l'interface
+    if (accountType === 'Admin') {
+      setError('❌ La création de compte administrateur n\'est pas autorisée via l\'interface. Contactez un administrateur existant.');
+      return false;
+    }
+
+    if (accountType === 'User') {
       if (!formData.email || !formData.password) {
         setError('Email et mot de passe sont requis');
         return false;
@@ -98,9 +113,7 @@ const LoginPage = ({ onNavigate, onLogin }) => {
       return true;
     }
 
-    // VALIDATION POUR INSCRIPTION - ORGANISATION
     if (accountType === 'Organisation') {
-      // Vérifier les champs de l'organisation
       if (!formData.nom || formData.nom.trim().length < 2) {
         setError('Le nom de l\'organisation est requis (minimum 2 caractères)');
         return false;
@@ -111,7 +124,6 @@ const LoginPage = ({ onNavigate, onLogin }) => {
         return false;
       }
 
-      // Vérifier les champs du représentant
       if (!formData.repreUsername || formData.repreUsername.trim().length < 2) {
         setError('Le nom du représentant est requis (minimum 2 caractères)');
         return false;
@@ -137,51 +149,28 @@ const LoginPage = ({ onNavigate, onLogin }) => {
     e.preventDefault();
     setError('');
 
-    console.log('🔍 Validation du formulaire...', {
-      isLogin,
-      accountType,
-      formData: accountType === 'Organisation' ? {
-        nom: formData.nom,
-        nbrVolontaires: formData.nbrVolontaires,
-        repreUsername: formData.repreUsername,
-        repreEmail: formData.repreEmail,
-        reprePassword: formData.reprePassword ? '***' : ''
-      } : {
-        email: formData.email,
-        username: formData.username,
-        password: formData.password ? '***' : ''
-      }
-    });
-
     if (!validateForm()) {
-      console.error('❌ Validation échouée');
       return;
     }
 
-    console.log('✅ Validation réussie, envoi à l\'API...');
     setLoading(true);
 
     try {
       if (isLogin) {
         // LOGIN
-        console.log('🔐 Tentative de connexion...');
         const userData = await AuthService.login(formData.email, formData.password);
-        console.log('✅ Connexion réussie, userData:', userData);
         onLogin(userData);
       } else {
-        // SIGNUP
+        // SIGNUP - Création directe sans 2FA
         let userData;
         
         if (accountType === 'User') {
-          console.log('👤 Création compte User...');
           userData = await AuthService.signupUser({
             email: formData.email,
             username: formData.username,
             password: formData.password
           });
-          console.log('✅ User créé, userData:', userData);
         } else if (accountType === 'Organisation') {
-          console.log('🏢 Création organisation...');
           userData = await AuthService.signupOrganisation({
             nom: formData.nom,
             nbrVolontaires: parseInt(formData.nbrVolontaires, 10),
@@ -189,22 +178,12 @@ const LoginPage = ({ onNavigate, onLogin }) => {
             repreEmail: formData.repreEmail,
             reprePassword: formData.reprePassword
           });
-          console.log('✅ Organisation créée, userData:', userData);
-        } else if (accountType === 'Admin') {
-          console.log('🛡️ Création compte Admin...');
-          userData = await AuthService.signupAdmin({
-            email: formData.email,
-            username: formData.username,
-            password: formData.password
-          });
-          console.log('✅ Admin créé, userData:', userData);
         }
-        
-        // IMPORTANT: Vérifier userData avant de passer à onLogin
+
         if (!userData || typeof userData.role === 'undefined') {
           throw new Error('Données utilisateur invalides reçues');
         }
-        
+
         onLogin(userData);
       }
     } catch (err) {
@@ -215,11 +194,108 @@ const LoginPage = ({ onNavigate, onLogin }) => {
     }
   };
 
+  // Gérer le reset password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    setResetSuccess(false);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!resetEmail || !emailRegex.test(resetEmail)) {
+      setResetError('Veuillez entrer un email valide');
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      await AuthService.resetPassword(resetEmail);
+      setResetSuccess(true);
+      setResetEmail('');
+    } catch (err) {
+      setResetError(err.message || 'Erreur lors de la réinitialisation');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  // VUE: Réinitialisation mot de passe
+  if (showResetPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+          <button
+            onClick={() => setShowResetPassword(false)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+          >
+            <ArrowLeft size={20} />
+            Retour
+          </button>
+
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="bg-gradient-to-br from-emerald-400 to-cyan-500 p-2 rounded-xl">
+                <Lock className="text-white" size={32} />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Mot de passe oublié</h2>
+            <p className="text-gray-600">
+              Entrez votre email pour recevoir un lien de réinitialisation
+            </p>
+          </div>
+
+          {resetSuccess && (
+            <div className="mb-6 p-4 bg-emerald-50 border-2 border-emerald-200 text-emerald-700 rounded-xl flex items-center gap-2">
+              <CheckCircle size={20} />
+              <p className="text-sm">
+                Email envoyé ! Vérifiez votre boîte de réception.
+              </p>
+            </div>
+          )}
+
+          {resetError && (
+            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl flex items-center gap-2">
+              <AlertCircle size={20} />
+              <p className="text-sm">{resetError}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <InputField
+              icon={<Mail />}
+              label="Email"
+              type="email"
+              value={resetEmail}
+              onChange={(v) => setResetEmail(v)}
+              required
+              placeholder="votre@email.com"
+            />
+
+            <button
+              type="submit"
+              disabled={resetLoading}
+              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-xl font-bold text-lg hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {resetLoading ? (
+                <>
+                  <Loader className="animate-spin" size={20} />
+                  Envoi en cours...
+                </>
+              ) : (
+                'Envoyer le lien'
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // VUE PRINCIPALE: Login/Signup
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-2xl">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="bg-gradient-to-br from-emerald-400 to-cyan-500 p-2 rounded-xl">
@@ -243,7 +319,6 @@ const LoginPage = ({ onNavigate, onLogin }) => {
           </p>
         </div>
 
-        {/* Toggle Login/Signup */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => handleToggleMode(true)}
@@ -263,10 +338,9 @@ const LoginPage = ({ onNavigate, onLogin }) => {
           </button>
         </div>
 
-        {/* Toggle User/Organisation/Admin (signup only) */}
         {!isLogin && (
           <div className="mb-6 border-2 border-gray-200 rounded-xl p-1">
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-2 gap-1">
               <button
                 onClick={() => handleAccountTypeChange('User')}
                 className={`py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm ${
@@ -289,37 +363,24 @@ const LoginPage = ({ onNavigate, onLogin }) => {
                 <Building2 size={18} />
                 Organisation
               </button>
-              <button
-                onClick={() => handleAccountTypeChange('Admin')}
-                className={`py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm ${
-                  accountType === 'Admin' 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                    : 'bg-transparent text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <Shield size={18} />
-                Admin
-              </button>
             </div>
           </div>
         )}
 
-        {/* Message d'erreur */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl flex items-center gap-2">
-            <span>⚠️</span>
+            <AlertCircle size={20} />
             <p className="text-sm">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* FORMULAIRE USER/ADMIN (Login + Signup) */}
-          {(isLogin || accountType === 'User' || accountType === 'Admin') && (
+          {(isLogin || accountType === 'User') && (
             <>
               {!isLogin && (
                 <InputField 
                   icon={<User />} 
-                  label={accountType === 'Admin' ? "Nom d'administrateur" : "Nom complet"}
+                  label="Nom complet"
                   value={formData.username}
                   onChange={(v) => setFormData({ ...formData, username: v })}
                   required
@@ -376,7 +437,6 @@ const LoginPage = ({ onNavigate, onLogin }) => {
             </>
           )}
 
-          {/* FORMULAIRE ORGANISATION (Signup only) */}
           {!isLogin && accountType === 'Organisation' && (
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
@@ -443,11 +503,10 @@ const LoginPage = ({ onNavigate, onLogin }) => {
             </div>
           )}
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-xl font-bold text-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-xl font-bold text-lg hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -461,40 +520,31 @@ const LoginPage = ({ onNavigate, onLogin }) => {
             )}
           </button>
 
-          {/* Lien mot de passe oublié (mode connexion) */}
           {isLogin && (
             <p className="text-center text-sm text-gray-600 mt-4">
               Mot de passe oublié ? 
-              <button type="button" className="text-emerald-600 hover:underline ml-1">
+              <button 
+                type="button" 
+                onClick={() => setShowResetPassword(true)}
+                className="text-emerald-600 hover:underline ml-1"
+              >
                 Réinitialiser
               </button>
             </p>
           )}
         </form>
 
-        {/* Bouton retour */}
         <button 
           onClick={() => onNavigate('welcome')}
           className="w-full mt-4 text-gray-600 hover:text-gray-800 transition"
         >
           ← Retour à l'accueil
         </button>
-
-        {/* Note pour Admin */}
-        {!isLogin && accountType === 'Admin' && (
-          <div className="mt-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-            <p className="text-sm text-amber-800">
-              <strong>⚠️ Note:</strong> La création de compte administrateur nécessite des permissions spéciales. 
-              Contactez le support si vous rencontrez des problèmes.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-// Composant InputField
 const InputField = ({ label, icon, onChange, error, ...props }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>

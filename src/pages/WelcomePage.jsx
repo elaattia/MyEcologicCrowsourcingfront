@@ -1,8 +1,48 @@
-// src/pages/WelcomePage.jsx
-import React from 'react';
-import { MapPin, Users, TrendingUp, Camera, Award, Building2, UserCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Users, TrendingUp, Camera, Award, Building2, UserCircle, Loader } from 'lucide-react';
 
 const WelcomePage = ({ onNavigate }) => {
+  const [stats, setStats] = useState({
+    totalDechetsSignales: 0,
+    totalZonesNettoyees: 0,
+    totalContributeursActifs: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchPublicStats();
+  }, []);
+
+  const fetchPublicStats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5008/api/PublicStats');
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des statistiques');
+      }
+
+      const data = await response.json();
+      setStats({
+        totalDechetsSignales: data.totalDechetsSignales || 0,
+        totalZonesNettoyees: data.totalZonesNettoyees || 0,
+        totalContributeursActifs: data.totalContributeursActifs || 0
+      });
+      setError('');
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError('Impossible de charger les statistiques');
+      // Garder les valeurs par défaut en cas d'erreur
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatNumber = (num) => {
+    return new Intl.NumberFormat('fr-FR').format(num);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-cyan-400 to-blue-500">
       <nav className="bg-white/95 backdrop-blur shadow-lg sticky top-0 z-50">
@@ -42,50 +82,74 @@ const WelcomePage = ({ onNavigate }) => {
             <strong>Citoyens</strong> : Signalez les déchets |{' '}
             <strong>Organisations</strong> : Optimisez vos collectes 
           </p>
-          <div className="flex gap-4 justify-center">
-            <button 
-              onClick={() => onNavigate('signup')}
-              className="px-8 py-4 bg-white text-emerald-600 rounded-xl hover:shadow-2xl transition font-bold text-lg flex items-center gap-2"
-            >
-              <UserCircle size={24} />
-              Espace Citoyen
-            </button>
-            <button 
-              onClick={() => onNavigate('signup')}
-              className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:shadow-2xl transition font-bold text-lg flex items-center gap-2"
-            >
-              <Building2 size={24} />
-              Espace Organisation
-            </button>
-          </div>
         </div>
 
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-8 mb-20">
-          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center">
+          {/* Déchets signalés */}
+          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center transform hover:scale-105 transition-transform">
             <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <MapPin className="text-emerald-600" size={36} />
             </div>
-            <div className="text-5xl font-bold text-emerald-600 mb-2">1,247</div>
-            <p className="text-gray-600 font-medium">Déchets signalés</p>
+            {loading ? (
+              <div className="flex justify-center items-center h-16">
+                <Loader className="animate-spin text-emerald-600" size={32} />
+              </div>
+            ) : (
+              <>
+                <div className="text-5xl font-bold text-emerald-600 mb-2">
+                  {formatNumber(stats.totalDechetsSignales)}
+                </div>
+                <p className="text-gray-600 font-medium">Déchets signalés</p>
+              </>
+            )}
           </div>
 
-          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center">
+          {/* Contributeurs actifs */}
+          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center transform hover:scale-105 transition-transform">
             <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="text-blue-600" size={36} />
             </div>
-            <div className="text-5xl font-bold text-blue-600 mb-2">892</div>
-            <p className="text-gray-600 font-medium">Contributeurs actifs</p>
+            {loading ? (
+              <div className="flex justify-center items-center h-16">
+                <Loader className="animate-spin text-blue-600" size={32} />
+              </div>
+            ) : (
+              <>
+                <div className="text-5xl font-bold text-blue-600 mb-2">
+                  {formatNumber(stats.totalContributeursActifs)}
+                </div>
+                <p className="text-gray-600 font-medium">Contributeurs actifs</p>
+              </>
+            )}
           </div>
 
-          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center">
+          {/* Zones nettoyées */}
+          <div className="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-xl text-center transform hover:scale-105 transition-transform">
             <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="text-amber-600" size={36} />
             </div>
-            <div className="text-5xl font-bold text-amber-600 mb-2">734</div>
-            <p className="text-gray-600 font-medium">Zones nettoyées</p>
+            {loading ? (
+              <div className="flex justify-center items-center h-16">
+                <Loader className="animate-spin text-amber-600" size={32} />
+              </div>
+            ) : (
+              <>
+                <div className="text-5xl font-bold text-amber-600 mb-2">
+                  {formatNumber(stats.totalZonesNettoyees)}
+                </div>
+                <p className="text-gray-600 font-medium">Zones nettoyées</p>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Message d'erreur si nécessaire */}
+        {error && (
+          <div className="mb-8 p-4 bg-red-100/90 backdrop-blur text-red-800 rounded-xl text-center">
+            {error}
+          </div>
+        )}
 
         {/* Pour qui ? */}
         <div className="bg-white/95 backdrop-blur rounded-3xl shadow-2xl p-12 mb-16">
@@ -190,7 +254,7 @@ const WelcomePage = ({ onNavigate }) => {
           </p>
           <button 
             onClick={() => onNavigate('signup')}
-            className="px-10 py-4 bg-white text-emerald-600 rounded-xl hover:shadow-2xl transition font-bold text-lg"
+            className="px-10 py-4 bg-white text-emerald-600 rounded-xl hover:shadow-2xl transition font-bold text-lg transform hover:scale-105"
           >
             Créer mon compte gratuitement
           </button>

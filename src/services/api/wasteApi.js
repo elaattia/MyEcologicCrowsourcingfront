@@ -6,6 +6,7 @@ const API_URL = '/api/pointdechet';
 const wasteApi = {
   /**
    * Signaler un déchet avec image et localisation
+   * Retourne l'ID du point de déchet créé
    */
   signalWaste: async (imageFile, latitude, longitude) => {
     const formData = new FormData();
@@ -22,6 +23,35 @@ const wasteApi = {
       return response.data;
     } catch (err) {
       console.error('Erreur signalWaste:', err);
+      throw err;
+    }
+  },
+
+  /**
+   * Classifier un déchet déjà signalé
+   * Analyse l'image via Roboflow et retourne les détails
+   */
+  classifyWaste: async (pointDechetId) => {
+    try {
+      const response = await api.post('/api/wasteclassification/classify', {
+        pointDechetId: pointDechetId
+      });
+      return response.data;
+    } catch (err) {
+      console.error('Erreur classifyWaste:', err);
+      throw err;
+    }
+  },
+
+  /**
+   * Récupérer les détails d'un point de déchet par ID
+   */
+  getWasteById: async (id) => {
+    try {
+      const response = await api.get(`${API_URL}/${id}`);
+      return response.data;
+    } catch (err) {
+      console.error('Erreur getWasteById:', err);
       throw err;
     }
   },
@@ -102,19 +132,6 @@ const wasteApi = {
       return response.data;
     } catch (err) {
       console.error('Erreur getMyWastes:', err);
-      throw err;
-    }
-  },
-
-  /**
-   * Récupérer un point de déchet par ID
-   */
-  getWasteById: async (id) => {
-    try {
-      const response = await api.get(`${API_URL}/${id}`);
-      return response.data;
-    } catch (err) {
-      console.error('Erreur getWasteById:', err);
       throw err;
     }
   },

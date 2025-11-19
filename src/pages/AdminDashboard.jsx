@@ -61,8 +61,8 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const stats = {
     total: users.length,
-    citoyens: users.filter(u => u.role === 0).length,
-    representants: users.filter(u => u.role === 1).length
+    citoyens: users.filter(u => u.role === 'User').length,
+    representants: users.filter(u => u.role === 'Representant').length
   };
 
   if (loading) {
@@ -205,7 +205,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {u.role === 0 ? (
+                        {u.role === 'User' ? (
                           <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold flex items-center gap-1 w-fit">
                             <User size={14} />
                             Citoyen

@@ -1,4 +1,4 @@
-// src/pages/OrganisationDashboard.jsx
+// src/pages/OrganisationDashboard.jsx - VERSION COMPLÈTE
 import React, { useState } from 'react';
 import Sidebar from '../components/Shared/Sidebar';
 import OrgDashboardContent from '../components/Organisation/OrgDashboardContent';
@@ -8,6 +8,7 @@ import OrgVehicules from '../components/Organisation/OrgVehicules';
 import OrgDepots from '../components/Organisation/OrgDepots';
 import OrgStatistiques from '../components/Organisation/OrgStatistiques';
 import ProfileContent from '../components/ProfileContent';
+import ForumContent from '../components/Forum/ForumContent'; // NOUVEAU
 
 const OrganisationDashboard = ({ user, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -24,6 +25,8 @@ const OrganisationDashboard = ({ user, onLogout }) => {
         return <OrgVehicules user={user} />;
       case 'depots':
         return <OrgDepots user={user} />;
+      case 'forum':
+        return <ForumContent user={user} />; // NOUVEAU
       case 'stats':
         return <OrgStatistiques user={user} />;
       case 'profile':

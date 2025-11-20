@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   MapPin, Home, Plus, Map as MapIcon, BarChart3, User, LogOut, 
-  Trash2, Truck, Route, Building2
+  Trash2, Truck, Route, Building2, MessageCircle, Award
 } from 'lucide-react';
 
 const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
@@ -13,6 +13,8 @@ const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
     { id: 'dashboard', label: 'Tableau de bord', icon: Home },
     { id: 'signal', label: 'Signaler un déchet', icon: Plus },
     { id: 'map', label: 'Carte', icon: MapIcon },
+    { id: 'challenges', label: 'Défis', icon: Award }, 
+    { id: 'forum', label: 'Forum', icon: MessageCircle }, 
     { id: 'stats', label: 'Statistiques', icon: BarChart3 },
     { id: 'history', label: 'Historique', icon: Trash2 },
     { id: 'profile', label: 'Profil', icon: User },
@@ -24,6 +26,7 @@ const Sidebar = ({ currentPage, setCurrentPage, user, onLogout }) => {
     { id: 'itinerary', label: 'Itinéraires', icon: Route },
     { id: 'vehicles', label: 'Véhicules', icon: Truck },
     { id: 'depots', label: 'Dépôts', icon: Building2 },
+    { id: 'forum', label: 'Forum', icon: MessageCircle },
     { id: 'stats', label: 'Statistiques', icon: BarChart3 },
     { id: 'profile', label: 'Profil', icon: User },
   ];

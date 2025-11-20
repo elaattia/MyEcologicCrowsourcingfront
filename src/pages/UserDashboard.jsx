@@ -1,4 +1,4 @@
-// pages/UserDashboard.jsx - CORRIGÉ
+// src/pages/UserDashboard.jsx - VERSION COMPLÈTE
 import React, { useState } from 'react';
 import Sidebar from '../components/Shared/Sidebar';
 import DashboardContent from '../components/DashboardContent';
@@ -7,6 +7,8 @@ import MapContent from '../components/MapContent';
 import StatsContent from '../components/StatsContent';
 import ProfileContent from '../components/ProfileContent';
 import WasteHistory from '../components/WasteHistory';
+import ForumContent from '../components/Forum/ForumContent'; // NOUVEAU
+import ChallengesContent from '../components/Challenges/ChallengesContent'; // NOUVEAU
 
 const UserDashboard = ({ user, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -19,6 +21,10 @@ const UserDashboard = ({ user, onLogout }) => {
         return <SignalWasteContent />;
       case 'map':
         return <MapContent />;
+      case 'challenges':
+        return <ChallengesContent user={user} />; // NOUVEAU
+      case 'forum':
+        return <ForumContent user={user} />; // NOUVEAU
       case 'stats':
         return <StatsContent user={user} />;
       case 'history':

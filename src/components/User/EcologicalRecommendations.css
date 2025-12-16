@@ -1,0 +1,85 @@
+.ecological-recommendations {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-top: 20px;
+}
+
+.recommendations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.recommendations-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  color: #4CAF50;
+}
+
+.btn-regenerate {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-regenerate:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.btn-regenerate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recommendation-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #4CAF50;
+}
+
+.rec-category {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4CAF50;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.rec-text {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}

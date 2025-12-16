@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Award, Calendar, Users, TrendingUp, MapPin,
-  CheckCircle, Clock, Target, Loader, AlertCircle, Share2
+  CheckCircle, Clock, Target, Loader, AlertCircle, Share2, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 import { challengeApi } from '../../services/api/challengeApi';
+import api from '../../services/api/axiosConfig';
 import SubmitProof from './SubmitProof';
 
 const ChallengeDetail = ({ challengeId, onBack, user }) => {
@@ -13,7 +14,8 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showSubmitProof, setShowSubmitProof] = useState(false);
-  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'submissions'
+  const [activeTab, setActiveTab] = useState('details');
+  const [votingLoading, setVotingLoading] = useState({});
 
   useEffect(() => {
     fetchChallengeData();
@@ -62,6 +64,25 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
     } catch (err) {
       console.error('Erreur quitter challenge:', err);
       alert(err.message || 'Erreur');
+    }
+  };
+
+  const handleVote = async (submissionId, isValid) => {
+    setVotingLoading(prev => ({ ...prev, [submissionId]: true }));
+    
+    try {
+      // ✅ Envoyer le booléen directement
+      await api.post(`/api/Submissions/${submissionId}/vote`, { 
+        isValid: isValid 
+      });
+      
+      alert(isValid ? '👍 Vote enregistré!' : '👎 Vote enregistré!');
+      await fetchChallengeData();
+    } catch (error) {
+      console.error('Erreur vote:', error);
+      alert('Erreur: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setVotingLoading(prev => ({ ...prev, [submissionId]: false }));
     }
   };
 
@@ -128,6 +149,60 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        .voting-buttons {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+        .btn-vote {
+          flex: 1;
+          padding: 8px 12px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+        .btn-vote:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .btn-valid {
+          background: #10b981;
+          color: white;
+        }
+        .btn-valid:hover:not(:disabled) {
+          background: #059669;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+        .btn-invalid {
+          background: #ef4444;
+          color: white;
+        }
+        .btn-invalid:hover:not(:disabled) {
+          background: #dc2626;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3);
+        }
+        .submission-card {
+          background: #f9fafb;
+          border-radius: 16px;
+          overflow: hidden;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .submission-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
+
       {/* Bouton retour */}
       <button
         onClick={onBack}
@@ -411,7 +486,7 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {submissions.map((submission) => (
-                <div key={submission.id} className="bg-gray-50 rounded-xl overflow-hidden">
+                <div key={submission.id} className="submission-card">
                   {submission.thumbnailUrl || submission.proofUrl ? (
                     <img
                       src={submission.thumbnailUrl || submission.proofUrl}
@@ -440,7 +515,7 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <span className={`px-3 py-1 rounded-lg text-xs font-bold ${getStatusColor(submission.status)}`}>
                         {submission.status}
                       </span>
@@ -453,9 +528,39 @@ const ChallengeDetail = ({ challengeId, onBack, user }) => {
                       )}
                     </div>
 
-                    <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-                      <span>👍 {submission.validVotes}</span>
-                      <span>👎 {submission.invalidVotes}</span>
+                    {/* Boutons de vote */}
+                    <div className="voting-buttons">
+                      <button 
+                        onClick={() => handleVote(submission.id, true)}
+                        disabled={votingLoading[submission.id]}
+                        className="btn-vote btn-valid"
+                      >
+                        {votingLoading[submission.id] ? (
+                          <Loader size={14} className="animate-spin" />
+                        ) : (
+                          <>
+                            <ThumbsUp size={14} />
+                            Valide ({submission.validVotes || 0})
+                          </>
+                        )}
+                      </button>
+                      <button 
+                        onClick={() => handleVote(submission.id, false)}
+                        disabled={votingLoading[submission.id]}
+                        className="btn-vote btn-invalid"
+                      >
+                        {votingLoading[submission.id] ? (
+                          <Loader size={14} className="animate-spin" />
+                        ) : (
+                          <>
+                            <ThumbsDown size={14} />
+                            Invalide ({submission.invalidVotes || 0})
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
                       <span className="ml-auto">
                         {new Date(submission.submittedAt).toLocaleDateString()}
                       </span>

@@ -1,6 +1,6 @@
-// src/components/Challenges/ChallengesContent.jsx
+// src/components/Challenges/ChallengesContent.jsx - NAVIGATION CORRIGÉE
 import React, { useState, useEffect } from 'react';
-import { Award, TrendingUp, Calendar, Users, Loader, AlertCircle, CheckCircle, Trophy } from 'lucide-react';
+import { Award, TrendingUp, Calendar, Users, Loader, AlertCircle, CheckCircle, Trophy, ArrowLeft } from 'lucide-react';
 import { challengeApi } from '../../services/api/challengeApi';
 import ChallengeDetail from './ChallengeDetail';
 import Leaderboard from './Leaderboard';
@@ -15,7 +15,12 @@ const ChallengesContent = ({ user }) => {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
 
   useEffect(() => {
-    fetchChallenges();
+    // Ne charger que si on n'est pas dans leaderboard ou achievements
+    if (activeTab !== 'leaderboard' && activeTab !== 'achievements') {
+      fetchChallenges();
+    } else {
+      setLoading(false);
+    }
   }, [activeTab]);
 
   const fetchChallenges = async () => {
@@ -33,15 +38,10 @@ const ChallengesContent = ({ user }) => {
         const data = await challengeApi.getMyCompletedChallenges();
         setMyActiveChallenges(data || []);
       }
-      // Les onglets leaderboard et achievements ne nécessitent pas de chargement ici
-      if (activeTab !== 'leaderboard' && activeTab !== 'achievements') {
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
     } catch (err) {
       console.error('Erreur chargement challenges:', err);
       setError(err.message || 'Erreur de chargement');
+    } finally {
       setLoading(false);
     }
   };
@@ -83,12 +83,23 @@ const ChallengesContent = ({ user }) => {
     return icons[type] || '🎯';
   };
 
+  // CORRECTION: Gérer le retour depuis les détails d'un challenge
+  const handleBackFromDetail = () => {
+    setSelectedChallenge(null);
+  };
+
+  // CORRECTION: Gérer le changement d'onglet
+  const handleTabChange = (newTab) => {
+    setSelectedChallenge(null); // Réinitialiser la sélection
+    setActiveTab(newTab);
+  };
+
   // Si un challenge est sélectionné, afficher ses détails
   if (selectedChallenge) {
     return (
       <ChallengeDetail
         challengeId={selectedChallenge}
-        onBack={() => setSelectedChallenge(null)}
+        onBack={handleBackFromDetail}
         user={user}
       />
     );
@@ -96,12 +107,38 @@ const ChallengesContent = ({ user }) => {
 
   // Afficher le leaderboard
   if (activeTab === 'leaderboard') {
-    return <Leaderboard user={user} />;
+    return (
+      <div className="space-y-6">
+        {/* Bouton retour */}
+        <button
+          onClick={() => handleTabChange('all')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
+        >
+          <ArrowLeft size={20} />
+          Retour aux défis
+        </button>
+        
+        <Leaderboard user={user} />
+      </div>
+    );
   }
 
   // Afficher les achievements
   if (activeTab === 'achievements') {
-    return <AchievementBadge user={user} />;
+    return (
+      <div className="space-y-6">
+        {/* Bouton retour */}
+        <button
+          onClick={() => handleTabChange('all')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
+        >
+          <ArrowLeft size={20} />
+          Retour aux défis
+        </button>
+        
+        <AchievementBadge user={user} />
+      </div>
+    );
   }
 
   if (loading) {
@@ -133,7 +170,7 @@ const ChallengesContent = ({ user }) => {
       {/* Onglets */}
       <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
         <button
-          onClick={() => setActiveTab('all')}
+          onClick={() => handleTabChange('all')}
           className={`px-6 py-3 font-medium transition whitespace-nowrap ${
             activeTab === 'all'
               ? 'border-b-2 border-emerald-500 text-emerald-600'
@@ -143,7 +180,7 @@ const ChallengesContent = ({ user }) => {
           Tous les défis
         </button>
         <button
-          onClick={() => setActiveTab('active')}
+          onClick={() => handleTabChange('active')}
           className={`px-6 py-3 font-medium transition whitespace-nowrap ${
             activeTab === 'active'
               ? 'border-b-2 border-emerald-500 text-emerald-600'
@@ -153,7 +190,7 @@ const ChallengesContent = ({ user }) => {
           Mes défis actifs
         </button>
         <button
-          onClick={() => setActiveTab('completed')}
+          onClick={() => handleTabChange('completed')}
           className={`px-6 py-3 font-medium transition whitespace-nowrap ${
             activeTab === 'completed'
               ? 'border-b-2 border-emerald-500 text-emerald-600'
@@ -163,7 +200,7 @@ const ChallengesContent = ({ user }) => {
           Défis complétés
         </button>
         <button
-          onClick={() => setActiveTab('leaderboard')}
+          onClick={() => handleTabChange('leaderboard')}
           className={`px-6 py-3 font-medium transition whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'leaderboard'
               ? 'border-b-2 border-emerald-500 text-emerald-600'
@@ -174,7 +211,7 @@ const ChallengesContent = ({ user }) => {
           Classement
         </button>
         <button
-          onClick={() => setActiveTab('achievements')}
+          onClick={() => handleTabChange('achievements')}
           className={`px-6 py-3 font-medium transition whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'achievements'
               ? 'border-b-2 border-emerald-500 text-emerald-600'

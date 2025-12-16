@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Building2, Truck, MapPin, TrendingUp, AlertCircle, Loader } from 'lucide-react';
 import wasteApi from '../../services/api/wasteApi';
 import { vehiculeApi, depotApi } from '../../services/api/organisationApis';
-
+import { Upload } from 'lucide-react';
 const OrgDashboardContent = ({ user }) => {
   const [stats, setStats] = useState({
     totalDechets: 0,

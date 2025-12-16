@@ -46,7 +46,9 @@ const UserDashboard = ({ user, onLogout }) => {
       />
 
       <main className="flex-1 p-8 ml-64">
-        {renderContent()}
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );

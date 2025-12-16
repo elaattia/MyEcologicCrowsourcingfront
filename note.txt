@@ -1,7 +1,5 @@
 
 -je doit ajouter une historique des signalement que le user a signaler avec le resultat du modle(quelle type de decher)
--je doit ajouter que le user peut prendre une photo 
--je doit ajouter la partie du cartographie
 -et puis je doit ajouter la partie du admin et la partie du organisation(je doit modifer la partie connextion)
 -la partie itineraire pour organisation 
 -crude de lorganisation /crud des vehicule/depaut

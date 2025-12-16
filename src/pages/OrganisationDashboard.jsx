@@ -9,6 +9,7 @@ import OrgDepots from '../components/Organisation/OrgDepots';
 import OrgStatistiques from '../components/Organisation/OrgStatistiques';
 import ProfileContent from '../components/ProfileContent';
 import ForumContent from '../components/Forum/ForumContent'; // NOUVEAU
+import OrgSubmissions from '../components/Organisation/OrgSubmissions';
 
 const OrganisationDashboard = ({ user, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -19,6 +20,8 @@ const OrganisationDashboard = ({ user, onLogout }) => {
         return <OrgDashboardContent user={user} />;
       case 'map':
         return <OrgCartographie user={user} />;
+      case 'submissions': // NOUVEAU
+        return <OrgSubmissions />;
       case 'itinerary':
         return <OrgItineraires user={user} />;
       case 'vehicles':
@@ -46,7 +49,9 @@ const OrganisationDashboard = ({ user, onLogout }) => {
       />
 
       <main className="flex-1 p-8 ml-64">
-        {renderContent()}
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );

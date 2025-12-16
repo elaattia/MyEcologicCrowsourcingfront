@@ -1,10 +1,11 @@
-// components/WasteHistory.jsx - VERSION COMPLÈTE
+// components/WasteHistory.jsx - VERSION COMPLÈTE AVEC RECOMMANDATIONS
 import React, { useState, useEffect } from 'react';
 import { 
   Trash2, MapPin, Calendar, Filter, Search, Eye, 
-  CheckCircle, Clock, AlertCircle, Download, Loader, X
+  CheckCircle, Clock, AlertCircle, Download, Loader, X, Leaf
 } from 'lucide-react';
 import wasteApi from '../services/api/wasteApi';
+import EcologicalRecommendations from './User/EcologicalRecommendations';
 
 const WasteHistory = ({ user }) => {
   const [wastes, setWastes] = useState([]);
@@ -355,12 +356,15 @@ const WasteHistory = ({ user }) => {
         </div>
       )}
 
-      {/* Modal de détails */}
+      {/* Modal de détails avec recommandations écologiques */}
       {showModal && selectedWaste && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-cyan-500 p-6 flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-white">Détails du déchet</h3>
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-cyan-500 p-6 flex justify-between items-center z-10">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Trash2 size={28} />
+                Détails du déchet
+              </h3>
               <button
                 onClick={() => setShowModal(false)}
                 className="p-2 hover:bg-white/20 rounded-lg transition"
@@ -432,6 +436,17 @@ const WasteHistory = ({ user }) => {
                     <p className="font-bold text-gray-800">{selectedWaste.volumeEstime} kg</p>
                   </div>
                 )}
+              </div>
+
+              {/* Section des recommandations écologiques */}
+              <div className="border-t-2 border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Leaf className="text-emerald-600" size={24} />
+                  <h4 className="text-xl font-bold text-gray-800">
+                    Recommandations écologiques
+                  </h4>
+                </div>
+                <EcologicalRecommendations wastePointId={selectedWaste.id} />
               </div>
 
               <button

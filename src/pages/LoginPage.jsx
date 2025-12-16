@@ -302,7 +302,7 @@ const LoginPage = ({ onNavigate, onLogin, initialMode = 'login' }) => {
               <MapPin className="text-white" size={32} />
             </div>
             <span className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
-              EcoMap
+              EcoClean 
             </span>
           </div>
           <h2 className="text-3xl font-bold mb-2">
